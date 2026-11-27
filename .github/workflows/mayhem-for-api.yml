@@ -1,0 +1,31 @@
+name: Mayhem for API (manual only)
+
+on:
+  workflow_dispatch:
+    inputs:
+      api_url:
+        description: Authorized test API base URL
+        required: true
+        type: string
+      api_spec:
+        description: OpenAPI specification URL
+        required: true
+        type: string
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  configuration-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate explicit scan targets
+        env:
+          API_URL: ${{ inputs.api_url }}
+          API_SPEC: ${{ inputs.api_spec }}
+        run: |
+          set -euo pipefail
+          [[ "$API_URL" == https://* ]]
+          [[ "$API_SPEC" == https://* ]]
+          echo "Targets are HTTPS. The Mayhem scan remains disabled until a real API harness and MAYHEM_TOKEN are configured."

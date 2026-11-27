@@ -1,0 +1,29 @@
+name: ClipViet application tests (manual)
+
+on:
+  # The required lint, Node test suite and Next.js build run on the independent
+  # GitLab runner through ci/github-gitlab-bridge. Keep this duplicate
+  # GitHub-hosted workflow available for optional manual diagnostics only.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  clipviet:
+    name: Optional application and Provider Registry tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci --no-audit --no-fund
+      - name: Lint, test and build
+        run: |
+          npm run lint
+          npm test
+          npm run build

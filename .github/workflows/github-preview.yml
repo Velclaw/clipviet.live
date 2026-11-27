@@ -1,0 +1,42 @@
+name: GitHub Preview Artifact (manual)
+
+on:
+  # Cloudflare Pages deploys Preview directly and GitLab validates it without
+  # GitHub-hosted runners. Keep artifact packaging as an optional manual tool.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-preview:
+    name: Validate and package static Preview
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate static Preview
+        run: |
+          set -eu
+          test -s site/index.html
+          test -s site/styles.css
+          test -s site/app.js
+          test -s site/watch/source.html
+          test -s site/watch/source-player.js
+          test -s site/diagnostics/index.html
+          test -s site/diagnostics/diagnostics.js
+      - name: Assemble isolated artifact
+        run: |
+          set -eu
+          rm -rf preview-site
+          mkdir -p preview-site
+          cp -R site/. preview-site/
+          rm -f preview-site/CNAME
+          test ! -e preview-site/CNAME
+          printf '%s\\n' "Preview artifact only. No custom domain or production deployment." > preview-site/PREVIEW-NOTICE.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: clipviet-github-preview
+          path: preview-site/
+          if-no-files-found: error
+          retention-days: 3
