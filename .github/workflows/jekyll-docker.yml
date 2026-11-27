@@ -1,0 +1,16 @@
+name: Legacy Jekyll site CI (manual only)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  disabled:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Explain retired build path
+        run: |
+          echo "This repository publishes the static site/ directory with Cloudflare Pages."
+          echo "The repository has no Gemfile or Jekyll configuration; use the Cloudflare Preview build instead."

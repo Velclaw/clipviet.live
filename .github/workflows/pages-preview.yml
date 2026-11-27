@@ -1,0 +1,30 @@
+name: GitHub Pages Static Preview Checks (manual)
+
+on:
+  # Cloudflare Pages Preview build and the independent GitLab runner are the
+  # required validation path; GitHub-hosted checks remain optional.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate-static-site:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Validate Preview files and JavaScript
+        run: |
+          set -eu
+          test -s site/index.html
+          test -s site/app.js
+          test -s site/styles.css
+          test -s site/watch/source.html
+          test -s site/watch/source-player.js
+          test -s site/diagnostics/index.html
+          test -s site/diagnostics/diagnostics.js
+          find site -type f \\( -name '*.js' -o -name '*.mjs' \\) -print0 |
+            while IFS= read -r -d '' file; do node --input-type=module --check < "$file"; done

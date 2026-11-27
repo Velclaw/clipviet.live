@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#08090d"><meta name="robots" content="noindex,nofollow"><title>ClipViet API Docs — Preview</title><link rel="stylesheet" href="../styles.css">
+<style>.docs{max-width:1120px;margin:auto;padding:48px 18px 80px}.docs h1{font-size:clamp(34px,6vw,62px);letter-spacing:-2px;line-height:1.1}.docs h2{margin:34px 0 12px;font-size:21px}.docs p,.docs li{color:#aaa;font-size:13px;line-height:1.85}.docs code,.docs pre{font-family:ui-monospace,SFMono-Regular,monospace}.docs code{color:#ffb9bd;overflow-wrap:anywhere}.docs pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#101219;border:1px solid #292a31;padding:16px;color:#ddd;font-size:11px;line-height:1.8}.endpoint{border:1px solid #292a31;padding:16px;margin:12px 0;background:#101219}.method{display:inline-block;border:1px solid #555;padding:5px 8px;font-size:9px;letter-spacing:1px;margin-right:10px}.note{border-left:2px solid #ef3340;padding:12px 16px;background:#141015}.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}@media(max-width:650px){.docs{padding:32px 14px 60px}.grid{grid-template-columns:1fr}}</style></head>
+<body><header class="topbar"><a class="brand" href="../"><span>Clip<span class="brand-accent">Viet</span><small>.live</small></span></a><nav><a href="/">Trang chủ</a><a href="/video/">Video</a><a href="/tag/">Tags</a><a href="/group/">Groups</a></nav></header>
+<main class="docs"><p class="eyebrow">CLIPVIET / PREVIEW DEVELOPER PORTAL</p><h1>API & CMS <span style="color:#777">Preview</span></h1>
+<p>Cloudflare Worker gateway điều phối các đường dẫn. Metadata CMS lưu trong D1 Preview; public API chỉ trả các video đã được duyệt quyền và xuất bản.</p>
+<div class="note"><strong>Preview only:</strong> Không có custom domain, DNS, Production route hoặc R2 video bucket trong lần triển khai này. Provider catalog vẫn bị khóa theo chính sách deny-by-default cho đến khi quyền phân phối được xác minh.</div>
+<h2>Gateway</h2><pre>https://clipviet-unified-preview.huynhthuongg2505-f9b.workers.dev</pre>
+<h2>Public API</h2>
+<div class="endpoint"><span class="method">GET</span><code>/api/videos</code><p>Danh sách video đã được duyệt và xuất bản từ D1.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/tags</code><p>Tags tổng hợp từ các video đã xuất bản.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/groups</code><p>Groups tổng hợp từ các video đã xuất bản.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/catalog/categories</code><p>Catalog nguồn ngoài ở chế độ pending. Không tự truy vấn hoặc công khai nội dung chưa duyệt quyền.</p></div>
+<h2>Admin API · Cloudflare Access</h2>
+<p>Toàn bộ đường dẫn <code>/admin</code> và <code>/admin/api/*</code> yêu cầu Cloudflare Access MFA. Không có PIN 6 số hoặc token quản trị trong mã nguồn.</p>
+<div class="endpoint"><span class="method">GET</span><code>/admin/api/videos</code><p>Danh sách bản nháp và video đã xuất bản.</p></div>
+<div class="endpoint"><span class="method">POST</span><code>/admin/api/videos</code><p>Tạo bản nháp metadata: title, description, videoUrl, posterUrl, tags, groups, rightsEvidenceUrl, rightsNotes.</p></div>
+<div class="endpoint"><span class="method">PUT</span><code>/admin/api/videos/{id}</code><p>Cập nhật metadata bản nháp.</p></div>
+<div class="endpoint"><span class="method">POST</span><code>/admin/api/videos/{id}/review</code><p>Ghi nhận quyết định duyệt quyền. Phải có URL bằng chứng HTTPS và ghi chú kiểm tra.</p></div>
+<div class="endpoint"><span class="method">POST</span><code>/admin/api/videos/{id}/publish</code><p>Chỉ xuất bản khi rights status được duyệt, có bằng chứng và video host nằm trong allowlist.</p></div>
+<h2>Video storage</h2><div class="note">Upload tệp video trả <code>501 VIDEO_STORAGE_NOT_PROVISIONED</code>. Bucket hiện có là OpenNext cache, không được tái sử dụng để lưu video. Khi có bucket R2 riêng và được duyệt chi phí, mới bật upload.</div>
+<h2>AppleCMS Provider API v1 · normalized</h2>
+<p>Hợp đồng đầy đủ: <a href="https://github.com/zskbot/clipviet.live/blob/feat/issue-155-provider-api-safari-preview-20261127/docs/API-PROVIDERS-V1.md" target="_blank" rel="noopener noreferrer">docs/API-PROVIDERS-V1.md</a>. Các endpoint đã tách riêng categories, video list, metadata detail và playback info.</p>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/applecms/status</code><p>Provider state: NOT_CONFIGURED, PENDING_RIGHTS, METADATA_ONLY, PLAYBACK_APPROVED; operationalState: NOT_CHECKED, ACTIVE hoặc ERROR.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/applecms/categories?sourceId=souavzy</code><p>Lấy danh mục lá AppleCMS sau khi provider có quyền metadata.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/applecms/videos?sourceId=souavzy&amp;page=1&amp;limit=30</code><p>Danh sách metadata đã qua duyệt từng video; hỗ trợ categoryId và keyword.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/applecms/videos/{videoId}?sourceId=souavzy</code><p>Chi tiết metadata; không trả URL stream hoặc embed.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/applecms/videos/{videoId}/playback?sourceId=souavzy</code><p>Thông tin phát độc lập. Chỉ trả official embed hoặc direct browser source khi rights record của provider và video cho phép cùng host allowlist được khai báo.</p></div>
+<div class="note">Không có quyền phát thì endpoint trả 403. Không có proxy, tải xuống, relay segment, re-hosting hay bỏ qua giới hạn nguồn. Các ứng viên hiện vẫn PENDING.</div>
+<h2>api.video · VOD Player SDK</h2>
+<p>Tích hợp tùy chọn SDK <code>@api.video/player-sdk</code> để phát video được lưu trữ trên api.video. SDK chỉ được tải khi bản ghi có <code>apiVideoId</code> hoặc <code>api_video_id</code> hợp lệ. Các video HLS/MP4 từ nhà cung cấp khác tiếp tục dùng HTML5/HLS.js hiện tại.</p>
+<div class="note"><strong>Quyền phát:</strong> SDK chỉ khởi tạo khi <code>playbackEnabled === true</code> và <code>playbackRightsApproved === true</code>. Chỉ có videoId không chứng minh quyền phân phối hoặc quyền truy cập video riêng tư. Không đặt API access key trong trình duyệt.</div>
+<div class="endpoint"><span class="method">PLAYER</span><code>apiVideoId</code><p>ID video api.video. Có thể đặt ở cấp video hoặc dùng <code>provider: "api.video"</code> cùng <code>videoId</code>. Video phải được cấp quyền phát trước khi hiển thị player.</p></div>
+<pre>{
+  "provider": "api.video",
+  "videoId": "YOUR_PUBLIC_VIDEO_ID",
+  "playbackEnabled": true,
+  "playbackRightsApproved": true
+}</pre>
+<p>Player SDK được tải từ <code>https://unpkg.com/@api.video/player-sdk</code> theo nhu cầu, khởi tạo với autoplay tắt và có thể hủy khi đổi video. Trên iPhone/Safari, người xem chủ động nhấn Play trong player nhúng.</p>
+<h3>Nguồn tham chiếu và giấy phép</h3>
+<ul>
+<li><a href="https://github.com/apivideo/api.video-documentation" target="_blank" rel="noopener noreferrer">api.video official documentation</a> — tài liệu VOD, Live, Delivery, API và SDK.</li>
+<li><a href="https://github.com/apivideo/api.video-player-sdk" target="_blank" rel="noopener noreferrer">api.video Player SDK upstream</a> — mã nguồn SDK chính chủ; MIT License. Bản mirror <code>zskbot/api.video-player-sdk</code> không được dùng làm nguồn phát hành độc lập.</li>
+<li><a href="https://github.com/zskbot/api.video-documentation" target="_blank" rel="noopener noreferrer">zskbot documentation mirror</a> — mirror tài liệu, không tải trùng vào ứng dụng.</li>
+<li><a href="https://github.com/zskbot/api-video" target="_blank" rel="noopener noreferrer">zskbot/api-video</a> — hồ sơ API Evangelist, chỉ metadata/tài liệu, không phải SDK hoặc backend.</li>
+</ul>
+<h2>Đường dẫn giao diện</h2><div class="grid"><div class="endpoint"><a href="/video/">/video</a><p>Video đã xuất bản</p></div><div class="endpoint"><a href="/tag/">/tag</a><p>Tags công khai</p></div><div class="endpoint"><a href="/group/">/group</a><p>Groups công khai</p></div><div class="endpoint"><a href="/admin/">/admin</a><p>CMS yêu cầu Access MFA</p></div></div>
+
+<h2>Provider status & diagnostics · Preview</h2>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers</code><p>Trạng thái cấu hình, connector, quyền provider và số video có hồ sơ quyền hợp lệ. Không gọi upstream.</p></div>
+<div class="endpoint"><span class="method">GET</span><code>/api/providers/diagnostics</code><p>Kiểm tra kỹ thuật từng provider. Provider đang PENDING_RIGHTS không bị gọi; nguồn chỉ được probe sau khi quyền provider được phê duyệt.</p></div>
+<div class="note">Catalog rỗng hiện tại không phải dữ liệu demo bị mất: D1 Preview ghi nhận 5 provider ở trạng thái PENDING, chưa có connector được duyệt và chưa có hồ sơ quyền video APPROVED. Vì vậy API trả trạng thái rights-pending thay vì tự ý thu thập hoặc phát nội dung.</div>
+<div class="endpoint"><span class="method">GET / POST</span><code>https://clipviet-metadata-intake-preview.huynhthuongg2505-f9b.workers.dev/metadata-intake</code><p>Form công khai dành cho chủ thể quyền gửi hồ sơ metadata-only. Mọi hồ sơ được lưu PENDING_REVIEW; không nhận API secret, stream URL hoặc quyền phê duyệt.</p></div></main></body></html>
