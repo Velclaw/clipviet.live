@@ -6,7 +6,7 @@ BEFORE INSERT ON provider_registry
 WHEN NEW.status = 'ENABLED' AND (
   length(trim(COALESCE(NEW.rights_holder, ''))) = 0 OR
   length(trim(COALESCE(NEW.license_reference, ''))) = 0 OR
-  length(trim(COALESCE(NEW.rights_evidence_url, ''))) = 0 OR
+  lower(trim(COALESCE(NEW.rights_evidence_url, ''))) NOT GLOB 'https://[^/?# ]*' OR
   julianday(NEW.license_expires_at) IS NULL OR
   julianday(NEW.license_expires_at) <= julianday('now')
 )
@@ -20,7 +20,7 @@ ON provider_registry
 WHEN NEW.status = 'ENABLED' AND (
   length(trim(COALESCE(NEW.rights_holder, ''))) = 0 OR
   length(trim(COALESCE(NEW.license_reference, ''))) = 0 OR
-  length(trim(COALESCE(NEW.rights_evidence_url, ''))) = 0 OR
+  lower(trim(COALESCE(NEW.rights_evidence_url, ''))) NOT GLOB 'https://[^/?# ]*' OR
   julianday(NEW.license_expires_at) IS NULL OR
   julianday(NEW.license_expires_at) <= julianday('now')
 )

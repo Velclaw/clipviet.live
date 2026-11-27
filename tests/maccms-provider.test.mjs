@@ -16,6 +16,12 @@ test("MacCMS parser preserves dollar signs inside the media URL and fills an emp
   assert.equal(item.url, "https://cdn.example.com/video$token.m3u8");
 });
 
+test("MacCMS parser preserves dollar signs in both the label and the media URL", () => {
+  assert.deepEqual(parseMacCmsPlayUrl("Phim $5$https://cdn.example.com/video$token.m3u8"), [
+    { label: "Phim $5", url: "https://cdn.example.com/video$token.m3u8", routeIndex: 0, episodeIndex: 0 }
+  ]);
+});
+
 test("MacCMS providers are opt-in; no unreviewed source is contacted by default", async () => {
   const originalFetch = globalThis.fetch;
   let calls = 0;
